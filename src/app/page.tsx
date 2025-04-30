@@ -19,13 +19,22 @@ export default function PestSimulator() {
   const [insecticideAmount, setInsecticideAmount] = useState("1.5");
   const [insecticideType, setInsecticideType] = useState("Quimico");
   const [initialPopulation, setInitialPopulation] = useState("500");
-  const [toleranceLevel, setToleranceLevel] = useState("Medio bajo");
+  const [insecticidePrice, setInsecticidePrice] = useState("120");
   const [duration, setDuration] = useState("10");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [cherryPricePerKg, setCherryPricePerKg] = useState("5000"); // Precio por kg de cerezas
+  const [estimatedProduction, setEstimatedProduction] = useState("1000"); // Producción estimada total en kg
+
   const [results, setResults] = useState({
     populationData: [] as { x: number; y: number }[],
     affectedFruitPercentage: 0,
     contaminationLevel: "low", // low, medium, high
+    // Nuevos campos de resultados
+    insecticideCost: 0, // Costo total del insecticida
+    lostFruitKg: 0, // Kilos de fruta perdidos
+    lostFruitValue: 0, // Valor monetario de la fruta perdida
+    totalRevenue: 0, // Ingresos totales sin pérdidas
+    finalProfit: 0, // Ganancia final después de pérdidas y costos
   });
 
   // Reset simulation
@@ -33,12 +42,17 @@ export default function PestSimulator() {
     setInsecticideAmount("1.5");
     setInsecticideType("Quimico");
     setInitialPopulation("500");
-    setToleranceLevel("Medio bajo");
     setDuration("10");
     setResults({
       populationData: [],
       affectedFruitPercentage: 0,
       contaminationLevel: "low",
+      // Resetear también los nuevos campos
+      insecticideCost: 0,
+      lostFruitKg: 0,
+      lostFruitValue: 0,
+      totalRevenue: 0,
+      finalProfit: 0,
     });
     setIsSimulating(false);
   };
@@ -51,6 +65,9 @@ export default function PestSimulator() {
     const weeks = Number.parseInt(duration);
     const initialPop = Number.parseInt(initialPopulation);
     const insecticideAmountValue = Number.parseFloat(insecticideAmount);
+    const insecticidePriceValue = Number.parseFloat(insecticidePrice);
+    const cherryPriceValue = Number.parseFloat(cherryPricePerKg);
+    const totalProductionKg = Number.parseFloat(estimatedProduction);
 
     // Simple simulation algorithm (this would be more complex in a real app)
     const populationData = Array.from({ length: weeks + 1 }, (_, i) => {
@@ -79,10 +96,22 @@ export default function PestSimulator() {
       contaminationLevel = "medium";
     }
 
+    // Calcular los nuevos valores económicos
+    const insecticideCost = insecticideAmountValue * insecticidePriceValue;
+    const lostFruitKg = (affectedPercentage / 100) * totalProductionKg;
+    const lostFruitValue = lostFruitKg * cherryPriceValue;
+    const totalRevenue = totalProductionKg * cherryPriceValue;
+    const finalProfit = totalRevenue - lostFruitValue - insecticideCost;
+
     setResults({
       populationData,
       affectedFruitPercentage: affectedPercentage,
       contaminationLevel,
+      insecticideCost,
+      lostFruitKg,
+      lostFruitValue,
+      totalRevenue,
+      finalProfit,
     });
   };
 
@@ -117,21 +146,17 @@ export default function PestSimulator() {
               <label htmlFor="insecticide-amount" className="block">
                 Cantidad de insecticida aplicado:
               </label>
-              <Select
-                value={insecticideAmount}
-                onValueChange={setInsecticideAmount}
-              >
-                <SelectTrigger id="insecticide-amount" className="w-full">
-                  <SelectValue placeholder="L litros/hecta" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0.5">0.5 L litros/hecta</SelectItem>
-                  <SelectItem value="1.0">1.0 L litros/hecta</SelectItem>
-                  <SelectItem value="1.5">1.5 L litros/hecta</SelectItem>
-                  <SelectItem value="2.0">2.0 L litros/hecta</SelectItem>
-                  <SelectItem value="2.5">2.5 L litros/hecta</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="insecticide-amount"
+                  type="number"
+                  value={insecticideAmount}
+                  onChange={(e) => setInsecticideAmount(e.target.value)}
+                  className="w-full"
+                  placeholder="L litros"
+                />
+                <label className="block">Litros</label>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -154,6 +179,22 @@ export default function PestSimulator() {
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="insecticidePrice" className="block">
+                Precio del insecticida por litro:
+              </label>
+              <div className="flex gap-2 items-center">
+                <label htmlFor="">$</label>
+                <Input
+                  id="insecticidePrice"
+                  type="number"
+                  value={insecticidePrice}
+                  onChange={(e) => setInsecticidePrice(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="initial-population" className="block">
                 Población inicial de la plaga:
               </label>
@@ -167,21 +208,35 @@ export default function PestSimulator() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="tolerance-level" className="block">
-                Nivel de tolerancia a residuos en el fruto:
+              <label htmlFor="cherry-price" className="block">
+                Precio de venta de cereza por kilo:
               </label>
-              <Select value={toleranceLevel} onValueChange={setToleranceLevel}>
-                <SelectTrigger id="tolerance-level" className="w-full">
-                  <SelectValue placeholder="Seleccionar nivel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Muy bajo">Muy bajo</SelectItem>
-                  <SelectItem value="Bajo">Bajo</SelectItem>
-                  <SelectItem value="Medio bajo">Medio bajo</SelectItem>
-                  <SelectItem value="Medio">Medio</SelectItem>
-                  <SelectItem value="Alto">Alto</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 items-center">
+                <label htmlFor="">$</label>
+                <Input
+                  id="cherry-price"
+                  type="number"
+                  value={cherryPricePerKg}
+                  onChange={(e) => setCherryPricePerKg(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="estimated-production" className="block">
+                Producción estimada total:
+              </label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="estimated-production"
+                  type="number"
+                  value={estimatedProduction}
+                  onChange={(e) => setEstimatedProduction(e.target.value)}
+                  className="w-full"
+                />
+                <label className="block">Kilos</label>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -221,44 +276,41 @@ export default function PestSimulator() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-center mb-2">
-                  Perdidas en calidad de fruta
-                </h3>
-                <div className=" flex flex-col justify-center items-center">
-                  <div className="text-xl font-bold">
-                    {results.contaminationLevel === "high"
-                      ? "Alto"
-                      : results.contaminationLevel === "medium"
-                      ? "Medio"
-                      : "Bajo"}
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    {results.contaminationLevel === "high"
-                      ? "Residuos excesivos detectados"
-                      : results.contaminationLevel === "medium"
-                      ? "Residuos moderados en fruta"
-                      : "Residuos mínimos"}
-                  </p>
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-center mb-4 font-semibold">
+                Análisis Económico
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex justify-between border-b pb-1">
+                  <span>Costo de insecticida:</span>
+                  <span className="font-medium">
+                    ${results.insecticideCost.toLocaleString()}
+                  </span>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-center mb-2">Costo de aplicación</h3>
-                <div className=" flex flex-col justify-center items-center">
-                  <div className="text-xl font-bold">
-                    $
-                    {(
-                      parseFloat(insecticideAmount) *
-                      (insecticideType === "Quimico"
-                        ? 120
-                        : insecticideType === "Biologico"
-                        ? 180
-                        : 150)
-                    ).toFixed(2)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">por hectárea</p>
+                <div className="flex justify-between border-b pb-1">
+                  <span>Fruta perdida:</span>
+                  <span className="font-medium">
+                    {results.lostFruitKg.toFixed(2)} kg ($
+                    {results.lostFruitValue.toLocaleString()})
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span>Ingreso potencial total:</span>
+                  <span className="font-medium">
+                    ${results.totalRevenue.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Ganancia final estimada:</span>
+                  <span
+                    className={
+                      results.finalProfit < 0
+                        ? "text-red-500"
+                        : "text-green-500"
+                    }
+                  >
+                    ${results.finalProfit.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
