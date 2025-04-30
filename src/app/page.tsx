@@ -220,26 +220,71 @@ export default function PestSimulator() {
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-center mb-2">
+                  Perdidas en calidad de fruta
+                </h3>
+                <div className=" flex flex-col justify-center items-center">
+                  <div className="text-xl font-bold">
+                    {results.contaminationLevel === "high"
+                      ? "Alto"
+                      : results.contaminationLevel === "medium"
+                      ? "Medio"
+                      : "Bajo"}
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    {results.contaminationLevel === "high"
+                      ? "Residuos excesivos detectados"
+                      : results.contaminationLevel === "medium"
+                      ? "Residuos moderados en fruta"
+                      : "Residuos mínimos"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-center mb-2">Costo de aplicación</h3>
+                <div className=" flex flex-col justify-center items-center">
+                  <div className="text-xl font-bold">
+                    $
+                    {(
+                      parseFloat(insecticideAmount) *
+                      (insecticideType === "Quimico"
+                        ? 120
+                        : insecticideType === "Biologico"
+                        ? 180
+                        : 150)
+                    ).toFixed(2)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">por hectárea</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Controls */}
       <div className="flex flex-wrap gap-4 mt-6 justify-center">
-        <Button
-          onClick={handleStartSimulation}
-          className="min-w-[160px]"
-          disabled={isSimulating && results.populationData.length > 0}
-        >
-          Iniciar simulación
-        </Button>
-        <Button
-          onClick={handleReset}
-          variant="outline"
-          className="min-w-[160px]"
-        >
-          Reiniciar
-        </Button>
+        {!(isSimulating && results.populationData.length > 0) ? (
+          <Button
+            onClick={handleStartSimulation}
+            className="min-w-[160px]"
+            disabled={isSimulating && results.populationData.length > 0}
+          >
+            Iniciar simulación
+          </Button>
+        ) : (
+          <Button
+            onClick={handleReset}
+            variant="default"
+            className="min-w-[160px]"
+          >
+            Reiniciar simulación
+          </Button>
+        )}
         <Button
           onClick={handleExportResults}
           variant="outline"
@@ -262,6 +307,7 @@ export default function PestSimulator() {
               <SelectItem value="20">20</SelectItem>
             </SelectContent>
           </Select>
+          <span>dias</span>
         </div>
       </div>
     </div>
