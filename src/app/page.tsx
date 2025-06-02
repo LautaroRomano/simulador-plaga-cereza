@@ -1,367 +1,174 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart } from "../components/carts/line-chart";
-import { DonutChart } from "../components/carts/donut-chart";
-import { ContaminationIndicator } from "../components/carts/contamination-indicator";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { calcularCantidadCerezas, insecticidas } from "@/functions/functions";
+import { Check } from "lucide-react";
 
-export default function PestSimulator() {
-  const [insecticideAmount, setInsecticideAmount] = useState("1.5");
-  const [insecticideType, setInsecticideType] = useState("Quimico");
-  const [initialPopulation, setInitialPopulation] = useState("500");
-  const [insecticidePrice, setInsecticidePrice] = useState("120");
-  const [duration, setDuration] = useState("10");
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [cherryPricePerKg, setCherryPricePerKg] = useState("5000"); // Precio por kg de cerezas
-  const [estimatedProduction, setEstimatedProduction] = useState("1000"); // Producción estimada total en kg
+export default function App() {
+  //Datos de entrada
+  const [poblacionInicial, setPoblacionInicial] = useState(30);
+  const [variedadCereza, setVariedadCereza] = useState("Lapins");
+  const [insecticidasSeleccionados, setInsecticidasSeleccionados] = useState<
+    string[]
+  >([]);
+  const [fechaInicial, setFechaInicial] = useState<Date | null>(null);
 
-  const [results, setResults] = useState({
-    populationData: [] as { x: number; y: number }[],
-    affectedFruitPercentage: 0,
-    contaminationLevel: "low", // low, medium, high
-    // Nuevos campos de resultados
-    insecticideCost: 0, // Costo total del insecticida
-    lostFruitKg: 0, // Kilos de fruta perdidos
-    lostFruitValue: 0, // Valor monetario de la fruta perdida
-    totalRevenue: 0, // Ingresos totales sin pérdidas
-    finalProfit: 0, // Ganancia final después de pérdidas y costos
-  });
+  //Datos de simulación
+  const [cantidadCerezas, setCantidadCerezas] = useState(0);
+  const [brix, setBrix] = useState(0);
+  const [dia, setDia] = useState(0);
+  const [fechaActual, setFechaActual] = useState<Date>()
 
-  // Reset simulation
-  const handleReset = () => {
-    setInsecticideAmount("1.5");
-    setInsecticideType("Quimico");
-    setInitialPopulation("500");
-    setDuration("10");
-    setResults({
-      populationData: [],
-      affectedFruitPercentage: 0,
-      contaminationLevel: "low",
-      // Resetear también los nuevos campos
-      insecticideCost: 0,
-      lostFruitKg: 0,
-      lostFruitValue: 0,
-      totalRevenue: 0,
-      finalProfit: 0,
-    });
-    setIsSimulating(false);
+  //datos de salida
+  const [poblacionPlaga, setPoblacionPlaga] = useState(poblacionInicial);
+  const [calidadCereza, setCalidadCereza] = useState(0);
+
+  const iniciarSimulacion = () => {
+    setCantidadCerezas(calcularCantidadCerezas());
+    setBrix(0);
+    setDia(0);
   };
 
-  // Start simulation
-  const handleStartSimulation = () => {
-    setIsSimulating(true);
-
-    // Generate simulation data based on inputs
-    const weeks = Number.parseInt(duration);
-    const initialPop = Number.parseInt(initialPopulation);
-    const insecticideAmountValue = Number.parseFloat(insecticideAmount);
-    const insecticidePriceValue = Number.parseFloat(insecticidePrice);
-    const cherryPriceValue = Number.parseFloat(cherryPricePerKg);
-    const totalProductionKg = Number.parseFloat(estimatedProduction);
-
-    // Simple simulation algorithm (this would be more complex in a real app)
-    const populationData = Array.from({ length: weeks + 1 }, (_, i) => {
-      // Growth rate affected by insecticide amount (inverse relationship)
-      const growthRate = 0.3 - insecticideAmountValue * 0.05;
-      // Population grows exponentially but is limited by insecticide
-      return {
-        x: i,
-        y: Math.round(initialPop * Math.exp(growthRate * i)),
-      };
-    });
-
-    // Calculate affected fruit percentage based on final population
-    const maxPopulation = 1000;
-    const finalPopulation = populationData[populationData.length - 1].y;
-    const affectedPercentage = Math.min(
-      85,
-      Math.round((finalPopulation / maxPopulation) * 100)
+  const handleSelectInsecticida = (nombre: string) => {
+    setInsecticidasSeleccionados((prev) =>
+      prev.includes(nombre)
+        ? prev.filter((item) => item !== nombre)
+        : [...prev, nombre]
     );
-
-    // Determine contamination level based on insecticide amount and type
-    let contaminationLevel = "low";
-    if (insecticideAmountValue > 2) {
-      contaminationLevel = "high";
-    } else if (insecticideAmountValue > 1) {
-      contaminationLevel = "medium";
-    }
-
-    // Calcular los nuevos valores económicos
-    const insecticideCost = insecticideAmountValue * insecticidePriceValue;
-    const lostFruitKg = (affectedPercentage / 100) * totalProductionKg;
-    const lostFruitValue = lostFruitKg * cherryPriceValue;
-    const totalRevenue = totalProductionKg * cherryPriceValue;
-    const finalProfit = totalRevenue - lostFruitValue - insecticideCost;
-
-    setResults({
-      populationData,
-      affectedFruitPercentage: affectedPercentage,
-      contaminationLevel,
-      insecticideCost,
-      lostFruitKg,
-      lostFruitValue,
-      totalRevenue,
-      finalProfit,
-    });
   };
 
-  // Export results
-  const handleExportResults = () => {
-    const dataStr = JSON.stringify(results, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+  const siguienteDia = () => {
+    if (fechaInicial) {
+      const insecticida = insecticidasSeleccionados.length
+        ? insecticidas.find((i) => insecticidasSeleccionados.includes(i.nombre))
+        : null;
 
-    const exportFileDefaultName = "simulacion-resultados.json";
+      const mes = fechaInicial.getMonth();
 
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
+      setDia((prev) => prev + 1);
+      setPoblacionPlaga((prev) =>
+        Math.max(0, prev - (insecticida?.mortalidadExtra || 0) * poblacionPlaga)
+      );
+      setBrix((prev) => prev + 0.1);
+      setCalidadCereza((prev) => Math.min(100, prev + 5));
+    }
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-2xl font-bold text-center mb-6">
-        Simulador de Control de Plagas
+    <main className="flex flex-col items-center gap-4 p-4">
+      <h1 className="text-3xl font-bold text-center">
+        Simulador de Estrategias de Control de plagas en Cerezos
       </h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Data Entry Panel */}
+      <div className="flex gap-4">
+        {/* Panel de Entrada de Datos */}
         <Card>
           <CardHeader>
-            <CardTitle>Panel de entrada de datos</CardTitle>
+            <h2 className="text-xl font-semibold">Parámetros Iniciales</h2>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="insecticide-amount" className="block">
-                Cantidad de insecticida aplicado:
-              </label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="insecticide-amount"
-                  type="number"
-                  value={insecticideAmount}
-                  onChange={(e) => setInsecticideAmount(e.target.value)}
-                  className="w-full"
-                  placeholder="L litros"
-                />
-                <label className="block">Litros</label>
-              </div>
+          <CardContent className="flex flex-col space-y-4 items-center">
+            <div className="flex flex-col gap-2">
+              <Label>Población Inicial de Plaga</Label>
+              <Input
+                type="number"
+                value={poblacionInicial}
+                onChange={(e) => setPoblacionInicial(Number(e.target.value))}
+              />
             </div>
-
-            <div className="space-y-2">
-              <label htmlFor="insecticide-type" className="block">
-                Tipo de insecticida:
-              </label>
-              <Select
-                value={insecticideType}
-                onValueChange={setInsecticideType}
-              >
-                <SelectTrigger id="insecticide-type" className="w-full">
-                  <SelectValue placeholder="Seleccionar tipo" />
+            <div className="flex flex-col gap-2 w-full">
+              <Label>Variedad de Cereza</Label>
+              <Select value={variedadCereza} onValueChange={setVariedadCereza}>
+                <SelectTrigger>
+                  <span>{variedadCereza}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Quimico">Quimico</SelectItem>
-                  <SelectItem value="Biologico">Biologico</SelectItem>
-                  <SelectItem value="Organico">Organico</SelectItem>
+                  <SelectItem value="Lapins">Lapins</SelectItem>
+                  <SelectItem value="Kordia">Kordia</SelectItem>
+                  <SelectItem value="Sweetheart">Sweetheart</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label htmlFor="insecticidePrice" className="block">
-                Precio del insecticida por litro:
-              </label>
-              <div className="flex gap-2 items-center">
-                <label htmlFor="">$</label>
-                <Input
-                  id="insecticidePrice"
-                  type="number"
-                  value={insecticidePrice}
-                  onChange={(e) => setInsecticidePrice(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="initial-population" className="block">
-                Población inicial de la plaga:
-              </label>
-              <Input
-                id="initial-population"
-                type="number"
-                value={initialPopulation}
-                onChange={(e) => setInitialPopulation(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="cherry-price" className="block">
-                Precio de venta de cereza por kilo:
-              </label>
-              <div className="flex gap-2 items-center">
-                <label htmlFor="">$</label>
-                <Input
-                  id="cherry-price"
-                  type="number"
-                  value={cherryPricePerKg}
-                  onChange={(e) => setCherryPricePerKg(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="estimated-production" className="block">
-                Producción estimada total:
-              </label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="estimated-production"
-                  type="number"
-                  value={estimatedProduction}
-                  onChange={(e) => setEstimatedProduction(e.target.value)}
-                  className="w-full"
-                />
-                <label className="block">Kilos</label>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Panel de resultados</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-center mb-2">
-                Población de mosca de alas manchadas
-              </h3>
-              <div className="h-[200px]">
-                <LineChart data={results.populationData} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-center mb-2">
-                  Porcentaje de fruta afectada
-                </h3>
-                <div className="h-[120px] flex justify-center">
-                  <DonutChart percentage={results.affectedFruitPercentage} />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-center mb-2">
-                  Nivel de contaminación del fruto
-                </h3>
-                <div className="h-[120px] flex justify-center items-center">
-                  <ContaminationIndicator level={results.contaminationLevel} />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-center mb-4 font-semibold">
-                Análisis Económico
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex justify-between border-b pb-1">
-                  <span>Costo de insecticida:</span>
-                  <span className="font-medium">
-                    ${results.insecticideCost.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span>Fruta perdida:</span>
-                  <span className="font-medium">
-                    {results.lostFruitKg.toFixed(2)} kg ($
-                    {results.lostFruitValue.toLocaleString()})
-                  </span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span>Ingreso potencial total:</span>
-                  <span className="font-medium">
-                    ${results.totalRevenue.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold">
-                  <span>Ganancia final estimada:</span>
-                  <span
-                    className={
-                      results.finalProfit < 0
-                        ? "text-red-500"
-                        : "text-green-500"
-                    }
+            <div className="flex flex-col gap-2 w-full">
+              <Label>Insecticidas a utilizar</Label>
+              {insecticidas.map((insecticida) => (
+                <div
+                  key={insecticida.nombre}
+                  className="flex items-start justify-start"
+                >
+                  <button
+                    className="flex border w-4 h-4"
+                    onClick={() => handleSelectInsecticida(insecticida.nombre)}
                   >
-                    ${results.finalProfit.toLocaleString()}
-                  </span>
+                    {insecticidasSeleccionados.includes(insecticida.nombre) && (
+                      <Check className="text-green-500 -mt-1" />
+                    )}
+                  </button>
+                  <Label htmlFor={insecticida.nombre} className="ml-2">
+                    {insecticida.nombre}
+                  </Label>
                 </div>
-              </div>
+              ))}
             </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label>Fecha Inicial (Solo Noviembre y Diciembre)</Label>
+              <Input
+                type="date"
+                value={
+                  fechaInicial ? fechaInicial.toISOString().split("T")[0] : ""
+                }
+                min={`${new Date().getFullYear()}-11-01`}
+                max={`${new Date().getFullYear()}-12-31`}
+                onChange={(e) => {
+                  const date = new Date(e.target.value);
+                  const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+
+                  if (month === 11 || month === 12) {
+                    setFechaInicial(date);
+                  } else {
+                    alert(
+                      "Solo se permiten fechas de Noviembre (11) y Diciembre (12)"
+                    );
+                  }
+                }}
+              />
+              <p className="text-sm text-gray-600">
+                Ten en cuenta que la simulación inicia <br />
+                desde que el fruto comienza a crecer
+              </p>
+            </div>
+            <Button onClick={iniciarSimulacion}>Iniciar Simulación</Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap gap-4 mt-6 justify-center">
-        {!(isSimulating && results.populationData.length > 0) ? (
-          <Button
-            onClick={handleStartSimulation}
-            className="min-w-[160px]"
-            disabled={isSimulating && results.populationData.length > 0}
-          >
-            Iniciar simulación
-          </Button>
-        ) : (
-          <Button
-            onClick={handleReset}
-            variant="default"
-            className="min-w-[160px]"
-          >
-            Reiniciar simulación
-          </Button>
-        )}
-        <Button
-          onClick={handleExportResults}
-          variant="outline"
-          className="min-w-[160px]"
-          disabled={!results.populationData.length}
-        >
-          Exportar resultados
-        </Button>
-
-        <div className="flex items-center gap-2">
-          <span>Duración:</span>
-          <Select value={duration} onValueChange={setDuration}>
-            <SelectTrigger className="w-[80px]">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="15">15</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
-          <span>dias</span>
-        </div>
-      </div>
-    </div>
+      {/* Pestañas para vistas adicionales */}
+      <Tabs defaultValue="graficos">
+        <TabsList>
+          <TabsTrigger value="graficos">Gráficos</TabsTrigger>
+          <TabsTrigger value="datos">Datos</TabsTrigger>
+        </TabsList>
+        <TabsContent value="graficos">
+          <p className="text-center">
+            Aquí se mostrarán los gráficos de población y calidad.
+          </p>
+        </TabsContent>
+        <TabsContent value="datos">
+          <p className="text-center">
+            Aquí se mostrarán las tablas con resultados económicos.
+          </p>
+        </TabsContent>
+      </Tabs>
+    </main>
   );
 }
