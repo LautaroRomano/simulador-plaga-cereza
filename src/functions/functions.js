@@ -1,16 +1,16 @@
 import { Insecticida, TasasBrix, VariedadCereza } from "@/types";
 
 export function actualizarBrix(
-  brixActual: number,
-  temperatura: number,
-  variedad: VariedadCereza
-): number {
+  brixActual,
+  temperatura,
+  variedad
+) {
   return brixActual + 0.2;
 }
 
-function calcularTemperatura(mes: number): number {
+function calcularTemperatura(mes) {
   // implementar la logica para calcular una temperatura aleatoria
-  const temperaturas: Record<number, number> = {
+  const temperaturas = {
     0: 24,
     1: 22,
     10: 17,
@@ -31,13 +31,31 @@ export function calcularCantidadCerezas() {
   );
 }
 
-function numeroAleatorio(): number {
-  return Math.floor(Math.random());
+
+const numerosAleatorios = []
+const ultimoUsado = 0;
+//Generar u
+export function numeroAleatorio() {
+  let seed = Math.random();
+  const a = 17321;
+  const c = 16123;
+  const m = 15123;
+  Array.from({ length: 1000 }).forEach((_, i) => {
+    const newSeed = (a * seed + c) % m;
+    const u = newSeed/m;
+    numerosAleatorios.push(u);
+    seed = newSeed;
+  })
 }
 
+function obtenerNumeroAleatorio() { //obtener un numero aleatorio de la lista
+  const num = numerosAleatorios[ultimoUsado]
+  ultimoUsado++;
+  return num;
+}
 
 //constantes 
-export const insecticidas: Insecticida[] = [
+export const insecticidas = [
   { nombre: "Spinosinas", mortalidadExtra: 0.9, duracion: 14, impacto: -0.06 },
   {
     nombre: "Piretroides",
@@ -55,7 +73,7 @@ export const insecticidas: Insecticida[] = [
   },
 ];
 
-export const tasasBrix: TasasBrix[] = [
+export const tasasBrix = [
   {
     baja: 0,
     alta: 8,

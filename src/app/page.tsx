@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,16 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { calcularCantidadCerezas, insecticidas } from "@/functions/functions";
+import { calcularCantidadCerezas, insecticidas, numeroAleatorio } from "@/functions/functions";
 import { Check } from "lucide-react";
 import Arbol from "@/components/Arbol";
 import { tasasBrix } from "@/functions/functions";
 import Mosca from "@/components/Mosca";
 
 export default function App() {
+  useEffect(() => {
+    numeroAleatorio(); //generar numeros aleatorios al iniciar la app
+  }, []);
   //Datos de entrada
   const [poblacionInicial, setPoblacionInicial] = useState(3000);
   const [variedadCereza, setVariedadCereza] = useState("Lapins");
