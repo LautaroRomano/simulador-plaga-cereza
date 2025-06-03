@@ -15,10 +15,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { calcularCantidadCerezas, insecticidas } from "@/functions/functions";
 import { Check } from "lucide-react";
+import Arbol from "@/components/Arbol";
+import { tasasBrix } from "@/functions/functions";
+import Mosca from "@/components/Mosca";
 
 export default function App() {
   //Datos de entrada
-  const [poblacionInicial, setPoblacionInicial] = useState(30);
+  const [poblacionInicial, setPoblacionInicial] = useState(3000);
   const [variedadCereza, setVariedadCereza] = useState("Lapins");
   const [insecticidasSeleccionados, setInsecticidasSeleccionados] = useState<
     string[]
@@ -29,7 +32,7 @@ export default function App() {
   const [cantidadCerezas, setCantidadCerezas] = useState(0);
   const [brix, setBrix] = useState(0);
   const [dia, setDia] = useState(0);
-  const [fechaActual, setFechaActual] = useState<Date>()
+  const [fechaActual, setFechaActual] = useState<Date>();
 
   //datos de salida
   const [poblacionPlaga, setPoblacionPlaga] = useState(poblacionInicial);
@@ -153,22 +156,40 @@ export default function App() {
       </div>
 
       {/* Pestañas para vistas adicionales */}
-      <Tabs defaultValue="graficos">
-        <TabsList>
-          <TabsTrigger value="graficos">Gráficos</TabsTrigger>
-          <TabsTrigger value="datos">Datos</TabsTrigger>
-        </TabsList>
-        <TabsContent value="graficos">
-          <p className="text-center">
-            Aquí se mostrarán los gráficos de población y calidad.
-          </p>
-        </TabsContent>
-        <TabsContent value="datos">
-          <p className="text-center">
-            Aquí se mostrarán las tablas con resultados económicos.
-          </p>
-        </TabsContent>
-      </Tabs>
+      <div className="flex flex-col">
+        <p className="text-center">
+          Gráficos de la simulación. <br />
+          Población de Plaga: {poblacionPlaga} <br />
+          Cantidad de Cerezas: {cantidadCerezas} <br />
+          Brix: {brix.toFixed(2)} <br />
+          Día: {dia} <br />
+          Fecha Actual:{" "}
+          {fechaActual
+            ? fechaActual.toLocaleDateString()
+            : "Fecha no establecida"}
+        </p>
+        <div className="grid grid-cols-10 items-center justify-center gap-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <Arbol
+              key={i}
+              colorFruta={
+                tasasBrix.find((tb) => tb.baja <= brix && tb.alta > brix)?.color
+              }
+            />
+          ))}
+          {Array.from({ length: poblacionPlaga / 100 }).map((_, index) => (
+            <Mosca
+              key={index}
+              colorCuerpo={
+                insecticidasSeleccionados.length > 0 ? "red" : "black"
+              }
+              colorAlas={
+                insecticidasSeleccionados.length > 0 ? "darkred" : "gray"
+              }
+            />
+          ))}
+        </div>
+      </div>
     </main>
   );
 }

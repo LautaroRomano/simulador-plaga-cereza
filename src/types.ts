@@ -7,9 +7,10 @@ export interface Insecticida {
 
 export interface TasasBrix {
   baja: number;
-  media: number;
   alta: number;
-  madurez: number;
+  madurez: string;
+  color: string;
 }
+
 
 export type VariedadCereza = 'Lapins' | 'Kordia' | 'Sweetheart';
