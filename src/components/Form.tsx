@@ -1,26 +1,24 @@
 import { Label } from "./ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { insecticidas } from "@/functions/functions";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { Insecticida } from "@/types";
 
-export default function Form({ setDatosDeEntrada }: { setDatosDeEntrada: (datos: any) => void }) {
-    const [cantidadArboles, setCantidadArboles] = useState(25000);
+interface DatosEntrada {
+    variedadCereza: string;
+    insecticidaSeleccionado: Insecticida | null;
+}
+
+export default function Form({ iniciarSimulacion }: { iniciarSimulacion: (datos: DatosEntrada) => void }) {
     const [variedadCereza, setVariedadCereza] = useState("Lapins");
     const [insecticidaSeleccionado, setInsecticidaSeleccionado] = useState<string | null>(null);
     const [simulacionIniciada, setSimulacionIniciada] = useState(false);
 
-    const iniciarSimulacion = () => {
-        if (cantidadArboles <= 0) {
-            alert("La población inicial debe ser mayor que 0");
-            return;
-        }
+    const handleInit = () => {
         setSimulacionIniciada(true);
-        setDatosDeEntrada({
-            cantidadArboles,
+        iniciarSimulacion({
             variedadCereza,
             insecticidaSeleccionado: insecticidas.find(
                 (insecticida) => insecticida.nombre === insecticidaSeleccionado
@@ -50,30 +48,6 @@ export default function Form({ setDatosDeEntrada }: { setDatosDeEntrada: (datos:
                 <h2 className="text-xl font-semibold">Parámetros Iniciales</h2>
             </CardHeader>
             <CardContent className="flex flex-col space-y-4 items-center h-full">
-                <div className="flex flex-col gap-2 w-full">
-                    <Label>Cantidad de cerezos</Label>
-                    <Input
-                        type="number"
-                        value={cantidadArboles}
-                        onChange={(e) => setCantidadArboles(Number(e.target.value))}
-                    />
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                    <Label>Variedad de Cereza</Label>
-                    <Select
-                        value={variedadCereza}
-                        onValueChange={setVariedadCereza}
-                    >
-                        <SelectTrigger className="w-full">
-                            <span>{variedadCereza}</span>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Lapins">Lapins</SelectItem>
-                            <SelectItem value="Kordia">Kordia</SelectItem>
-                            <SelectItem value="Sweetheart">Sweetheart</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
                 <div className="flex flex-col gap-2 w-full">
                     <Label>Variedad de la cereza</Label>
                     {["Lapins", "Kordia", "Sweetheart"].map((cereza) => (
@@ -117,7 +91,7 @@ export default function Form({ setDatosDeEntrada }: { setDatosDeEntrada: (datos:
                 {
                     simulacionIniciada ?
                         <Button onClick={resetearSimulacion}>Resetear Simulacion</Button>
-                        : <Button onClick={iniciarSimulacion}>Iniciar Simulación</Button>
+                        : <Button onClick={handleInit}>Iniciar Simulación</Button>
                 }
             </CardFooter>
         </Card>
