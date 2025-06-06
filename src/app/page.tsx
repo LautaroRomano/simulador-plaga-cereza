@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { tasasBrix } from "@/functions/functions";
 import Form from "@/components/Form";
 import { DatosEntrada, DatosSalida } from "@/types";
 import ViewData from "@/components/ViewData";
@@ -14,7 +13,6 @@ export default function App() {
 
   //datos de salida
   const [datosDeSalida, setDatosDeSalida] = useState<DatosSalida | null>(null);
-  //console.log("🚀 ~ App ~ datosDeSalida:", datosDeSalida)
 
   const iniciarSimulacion = async (datos: DatosEntrada) => {
     setDatosDeEntrada(datos);
@@ -54,11 +52,17 @@ export default function App() {
         <h1 className="text-xl font-bold text-start">
           Simulador de Estrategias de Control de plagas en Cerezos
         </h1>
+        {!!datosDeSalida ? (
         <div className="flex item-center justify-center gap-2">
-          {datosDeSalida?.dia
-            ? `Simulacion de ${datosDeSalida?.dia} días`
+          {datosDeSalida.dias[datosDeSalida.dias.length - 1]
+            ? `Simulacion de ${datosDeSalida.dias.length} días`
             : "Simulación no iniciada"}
         </div>
+        ):(
+          <div className="flex item-center justify-center gap-2">
+            Simulación no iniciada
+          </div>
+        )}
       </div>
       <div
         className="flex w-screen items-center justify-center"
@@ -76,16 +80,7 @@ export default function App() {
           ) : (
             <ViewData
               data={{
-                poblacionPlaga: 500,
-                cantidadCerezas: 0,
-                cerezasDesechadas: 0,
-                brix: 0,
-                dia: 0,
-                calidadCereza: 0,
-                ganancia: 0,
-                costoInsecticida: 0,
-                perdidaTotal: 0,
-                insecticida: "",
+                dias: [],
                 arbolesTotales: 0,
                 cantidadCerezasInicial: 0,
                 cantidadMoscasInicial: 0,

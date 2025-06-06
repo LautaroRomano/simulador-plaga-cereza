@@ -20,6 +20,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { useEffect, useState } from "react";
 
 interface Props {
   data: DatosSalida;
@@ -29,31 +30,36 @@ interface Props {
 const COLORS = ["#c41c00", "#ff6659"];
 
 export default function ViewData({ data, insecticidaSeleccionado }: Props) {
-  // Simulación de datos históricos para los gráficos
-  // En una implementación real, estos datos vendrían acumulados día a día
+
+  const [dia, setDia] = useState<number>(data.dias.length - 1);
+
+  useEffect(() => {
+    setDia(data.dias.length - 1);
+  }, [data]);
+
   const generarDatosHistoricos = () => {
-    const dias = Array.from({ length: data.dia || 1 }, (_, i) => i + 1);
+    const dias = Array.from({ length: data.dias.length }, (_, i) => i + 1);
     return dias.map((dia) => ({
       dia,
-      poblacion: Math.round(data.poblacionPlaga * (dia / (data.dia || 1))),
-      cerezas: Math.round(data.cantidadCerezas * (dia / (data.dia || 1))),
-      brix: (data.brix * (dia / (data.dia || 1))).toFixed(1),
-      ganancia: Math.round(data.ganancia * (dia / (data.dia || 1))),
-      perdida: Math.round(data.perdidaTotal * (dia / (data.dia || 1))),
+      poblacion: Math.round((data.dias[dia]?.poblacionPlaga||0) * (dia / (data.dias.length || 1))),
+      cerezas: Math.round((data.dias[dia]?.cantidadCerezas||0) * (dia / (data.dias.length || 1))),
+      brix: ((data.dias[dia]?.brix||0) * (dia / (data.dias.length || 1))).toFixed(1),
+      ganancia: Math.round((data.dias[dia]?.ganancia||0) * (dia / (data.dias.length || 1))),
+      perdida: Math.round((data.dias[dia]?.perdidaTotal||0) * (dia / (data.dias.length || 1))),
     }));
   };
 
   const datosHistoricos = generarDatosHistoricos();
 
   const datosPastel = [
-    { name: "Cerezas Aprovechadas", value: data.cantidadCerezas },
-    { name: "Cerezas Desechadas", value: data.cerezasDesechadas },
+    { name: "Cerezas Aprovechadas", value: data.dias[data.dias.length - 1]?.cantidadCerezas || 0 },
+    { name: "Cerezas Desechadas", value: data.dias[data.dias.length - 1]?.cerezasDesechadas || 0 },
   ];
 
   return (
     <div className="w-full h-full bg-red-50 rounded-xl overflow-y-auto p-4">
       <h2 className="text-2xl font-bold text-red-800 mb-4">
-        Simulación: Día {data.dia}
+        Simulación: Día {dia}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -67,25 +73,25 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Ganancia</span>
                 <span className="text-2xl font-bold">
-                  ${data.ganancia.toLocaleString()}
+                  ${(data.dias[data.dias.length - 1]?.ganancia || 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Costo Insecticida</span>
                 <span className="text-2xl font-bold">
-                  ${data.costoInsecticida.toLocaleString()}
+                  ${(data.dias[data.dias.length - 1]?.costoInsecticida || 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Pérdida Total</span>
                 <span className="text-2xl font-bold">
-                  ${data.perdidaTotal.toLocaleString()}
+                  ${(data.dias[data.dias.length - 1]?.perdidaTotal || 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Calidad de Cereza</span>
                 <span className="text-2xl font-bold">
-                  {data.calidadCereza.toFixed(1)}/100
+                  {(data.dias[data.dias.length - 1]?.calidadCereza || 0).toFixed(1)}/100
                 </span>
               </div>
             </div>
@@ -135,7 +141,7 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Cerezas desechadas</span>
                 <span className="text-xl font-bold">
-                  {(data.cerezasDesechadas || 0).toLocaleString()}
+                  {(data.dias[data.dias.length - 1]?.cerezasDesechadas || 0).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -158,7 +164,7 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
                   key={i}
                   colorFruta={
                     tasasBrix.find(
-                      (tb) => tb.baja <= data.brix && tb.alta > data.brix
+                      (tb) => tb.baja <= data.dias[data.dias.length - 1]?.brix||0 && tb.alta > data.dias[data.dias.length - 1]?.brix||0
                     )?.color || "#ff0000"
                   }
                 />
@@ -166,11 +172,11 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
             </div>
             <div className="mt-4">
               <h3 className="text-red-800 font-medium mb-2">
-                Población de Moscas: {data.poblacionPlaga.toLocaleString()}
+                Población de Moscas: {(data.dias[data.dias.length - 1]?.poblacionPlaga||0).toLocaleString()}
               </h3>
               <div className="grid grid-cols-10 sm:grid-cols-15 items-center justify-center gap-1 max-h-24 overflow-y-auto bg-red-50 p-2 rounded-lg">
                 {Array.from({
-                  length: Math.min(150, Math.ceil(data.poblacionPlaga / 100)),
+                  length: Math.min(150, Math.ceil((data.dias[data.dias.length - 1]?.poblacionPlaga||0) / 100)),
                 }).map((_, index) => (
                   <Mosca
                     key={index}
@@ -179,7 +185,7 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
                   />
                 ))}
               </div>
-              {data.poblacionPlaga > 15000 && (
+              {(data.dias[data.dias.length - 1]?.poblacionPlaga||0) > 15000 && (
                 <p className="text-xs text-red-600 mt-1">
                   Mostrando representación parcial de la población
                 </p>

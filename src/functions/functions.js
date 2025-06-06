@@ -1,4 +1,5 @@
 export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
+  if(variedadCereza !== "") console.log("ok")
   const arbolesTotales = calcularArbolesTotales();
   const cantidadCerezasInicial = calcularCantidadDeCerezas(arbolesTotales);
   const cantidadMoscasInicial =
@@ -9,6 +10,24 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
   let brix = 0;
   let dia = 1;
   let temperatura = 0;
+
+  const datosSalida = {
+    arbolesTotales,
+    cantidadCerezasInicial,
+    cantidadMoscasInicial,
+    dias: []
+  }
+
+  if (!insecticidaSeleccionado) {
+    insecticidaSeleccionado = {
+      nombre: "Ninguno",
+      mortalidadExtra: 0,
+      duracion: 1,
+      impacto: 0,
+      precio: 0,
+      unidadesNecesarias: 0
+    };
+  }
 
   while (brix <= 18) {
     const moscasHembras = calcularMoscasHembras(poblacionMoscas);
@@ -26,28 +45,28 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
       insecticidaSeleccionado
     );
 
+    const cantidadAplicaciones = Math.ceil(dia / insecticidaSeleccionado.duracion);
+    const costoInsec = cantidadAplicaciones * insecticidaSeleccionado.precio * insecticidaSeleccionado.unidadesNecesarias;
+
+    datosSalida.dias.push({
+      poblacionPlaga: poblacionMoscas,
+      cantidadCerezas: cantidadCerezas,
+      cerezasDesechadas: cerezasDesechadas,
+      brix: brix,
+      dia,
+      calidadCereza: 100 + (insecticidaSeleccionado.impacto * cantidadAplicaciones),
+      ganancia: 4.19 * (cantidadCerezas / 100),
+      costoInsecticida: costoInsec,
+      perdidaTotal: costoInsec + (cerezasDesechadas / 100) * 4.19,
+      insecticida: insecticidaSeleccionado
+        ? insecticidaSeleccionado.nombre
+        : "Ninguno",
+    })
+
     dia++;
   }
 
-  const cantidadAplicaciones = Math.ceil(dia / insecticidaSeleccionado.duracion);
-  const costoInsec = cantidadAplicaciones * insecticidaSeleccionado.precio* insecticidaSeleccionado.unidadesNecesarias;
-  return {
-    poblacionPlaga: poblacionMoscas,
-    cantidadCerezas: cantidadCerezas,
-    cerezasDesechadas: cerezasDesechadas,
-    brix: brix,
-    dia,
-    calidadCereza: 100 + (insecticidaSeleccionado.impacto * cantidadAplicaciones),
-    ganancia: 4.19 * (cantidadCerezas / 100),
-    costoInsecticida: costoInsec,
-    perdidaTotal:costoInsec+(cerezasDesechadas/100)*4.19,
-    insecticida: insecticidaSeleccionado
-      ? insecticidaSeleccionado.nombre
-      : "Ninguno",
-    arbolesTotales: arbolesTotales,
-    cantidadCerezasInicial: cantidadCerezasInicial,
-    cantidadMoscasInicial: cantidadMoscasInicial,
-  };
+  return datosSalida;
 }
 
 /* ----------------------------------
@@ -136,7 +155,7 @@ function calcularPoblacionMoscas(temperatura, poblacionAnterior, insecticida) {
   poblacionMoscas =
     poblacionMoscas - poblacionMoscas * (insecticida?.mortalidadExtra || 0);
 
-    const poblacionMinima = 200+800 * obtenerNumeroAleatorio();
+  const poblacionMinima = 200 + 800 * obtenerNumeroAleatorio();
 
   return Math.max(poblacionMinima, Math.floor(poblacionMoscas));
 }

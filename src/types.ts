@@ -1,8 +1,8 @@
 export interface Insecticida {
-    nombre: string;
-    mortalidadExtra: number;
-    duracion: number;
-    impacto: number;
+  nombre: string;
+  mortalidadExtra: number;
+  duracion: number;
+  impacto: number;
 }
 
 export interface TasasBrix {
@@ -21,6 +21,13 @@ export interface DatosEntrada {
 }
 
 export interface DatosSalida {
+  dias: DiaSimulacion[];
+  arbolesTotales: number;
+  cantidadCerezasInicial: number;
+  cantidadMoscasInicial: number;
+}
+
+export interface DiaSimulacion {
   poblacionPlaga: number;
   cantidadCerezas: number;
   cerezasDesechadas: number;
@@ -31,7 +38,4 @@ export interface DatosSalida {
   costoInsecticida: number;
   perdidaTotal: number;
   insecticida: string;
-  arbolesTotales: number;
-  cantidadCerezasInicial: number;
-  cantidadMoscasInicial: number;
 }

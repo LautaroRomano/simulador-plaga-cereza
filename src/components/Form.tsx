@@ -28,6 +28,7 @@ export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: 
 
     const resetearSimulacion = () => {
         setSimulacionIniciada(false);
+        reset();
     };
 
     const handleSelectInsecticida = (nombre: string) => {
