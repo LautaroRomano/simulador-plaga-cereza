@@ -13,7 +13,7 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
   while (brix <= 18) {
     const moscasHembras = calcularMoscasHembras(poblacionMoscas);
     for (let i = 0; i < moscasHembras; i++) {
-      const cerezasOvipositadasPorMoscaPorDia = 11;
+      const cerezasOvipositadasPorMoscaPorDia = 4;
       const cd = poisson(cerezasOvipositadasPorMoscaPorDia); //cerezas desechadas por mosca por dia
       cerezasDesechadas += cd;
       cantidadCerezas = Math.max(0, cantidadCerezas - cd);
@@ -29,22 +29,18 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
     dia++;
   }
 
+  const cantidadAplicaciones = Math.ceil(dia / insecticidaSeleccionado.duracion);
+  const costoInsec = cantidadAplicaciones * insecticidaSeleccionado.precio* insecticidaSeleccionado.unidadesNecesarias;
   return {
     poblacionPlaga: poblacionMoscas,
     cantidadCerezas: cantidadCerezas,
     cerezasDesechadas: cerezasDesechadas,
     brix: brix,
     dia,
-    calidadCereza: 0,
-    ganancia: 10 * cantidadCerezas,
-    costoInsecticida: insecticidaSeleccionado
-      ? insecticidaSeleccionado.impacto * cantidadCerezas
-      : 0,
-    perdidaTotal:
-      cerezasDesechadas * 10 +
-      (insecticidaSeleccionado
-        ? insecticidaSeleccionado.impacto * cantidadCerezas
-        : 0),
+    calidadCereza: 100 + (insecticidaSeleccionado.impacto * cantidadAplicaciones),
+    ganancia: 4.19 * (cantidadCerezas / 100),
+    costoInsecticida: costoInsec,
+    perdidaTotal:costoInsec+(cerezasDesechadas/100)*4.19,
     insecticida: insecticidaSeleccionado
       ? insecticidaSeleccionado.nombre
       : "Ninguno",
@@ -58,8 +54,8 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
     CALCULAR CANTIDAD DE ARBOLES TOTALES
 ------------------------------------*/
 export function calcularArbolesTotales() {
-  // return Math.floor(21600 + 3600 * obtenerNumeroAleatorio());
-  return Math.floor(21.6 + 3.6 * obtenerNumeroAleatorio());
+  return Math.floor(21600 + 3600 * obtenerNumeroAleatorio());
+  //return Math.floor(21.6 + 3.6 * obtenerNumeroAleatorio());
 }
 
 /* ----------------------------------
@@ -82,7 +78,7 @@ export function calcularCantidadDeCerezas(cantidadCerezos) {
 export function calcularCantidadDeMoscasIniciales(cantidadCerezos) {
   let cantidadMoscas = 0;
   for (let i = 0; i < cantidadCerezos; i++) {
-    cantidadMoscas += Math.floor(2 + (13 - 2) * obtenerNumeroAleatorio()); //chequear
+    cantidadMoscas += Math.floor(2 + (13 - 2) * obtenerNumeroAleatorio());
   }
   return cantidadMoscas;
 }
@@ -99,7 +95,7 @@ function calcularMoscasHembras(moscasTotales) {
 -------------------------------*/
 function calcularTemperaturaPorDia(dia) {
   if (dia <= 30) {
-    let temperatura = obtenerNumeroNormal(17, 7);
+    let temperatura = (17, 7);
     return temperatura;
   }
   if (dia <= 61) {
@@ -140,7 +136,9 @@ function calcularPoblacionMoscas(temperatura, poblacionAnterior, insecticida) {
   poblacionMoscas =
     poblacionMoscas - poblacionMoscas * (insecticida?.mortalidadExtra || 0);
 
-  return Math.max(0, Math.floor(poblacionMoscas));
+    const poblacionMinima = 200+800 * obtenerNumeroAleatorio();
+
+  return Math.max(poblacionMinima, Math.floor(poblacionMoscas));
 }
 /* ------------------------------
           CALCULAR NORMAL
@@ -152,7 +150,6 @@ function obtenerNumeroNormal(media = 0, desviacion = 1) {
   let z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
 
   // Escalar con media y desviación estándar
-  console.log(z * desviacion + media);
   return z * desviacion + media;
 }
 
@@ -188,22 +185,26 @@ function obtenerNumeroAleatorio() {
     CONSTANTES
 -------------------------------*/
 export const insecticidas = [
-  { nombre: "Spinosinas", mortalidadExtra: 0.09, duracion: 14, impacto: -0.06 },
+  { nombre: "Spinosinas", mortalidadExtra: 0.30, duracion: 14, impacto: -6, precio: 73, unidadesNecesarias: 13 },
   {
     nombre: "Piretroides",
     mortalidadExtra: 0.95,
     duracion: 10,
-    impacto: -0.15,
+    impacto: -15,
+    precio: 37,
+    unidadesNecesarias: 53,
   },
-  { nombre: "Carbamatos", mortalidadExtra: 0.85, duracion: 7, impacto: -0.12 },
-  { nombre: "Diamidas", mortalidadExtra: 0.9, duracion: 14, impacto: -0.08 },
+  { nombre: "Carbamatos", mortalidadExtra: 0.85, duracion: 7, impacto: -12, precio: 7.5, unidadesNecesarias: 26 },
   {
     nombre: "Organofosforados",
     mortalidadExtra: 0.9,
     duracion: 10,
-    impacto: -0.18,
+    impacto: -18,
+    precio: 11,
+    unidadesNecesarias: 21,
   },
 ];
+
 export const tasasBrix = [
   {
     baja: 0,

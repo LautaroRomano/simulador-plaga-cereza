@@ -40,6 +40,14 @@ export default function App() {
     }
   };
 
+  const reset = () => {
+    setDatosDeSalida(null);
+    setDatosDeEntrada({
+      variedadCereza: "Lapins",
+      insecticidaSeleccionado: null,
+    });
+  };
+
   return (
     <main className="flex flex-col items-center bg-gray-100 w-full h-full overflow-x-hidden overflow-y-auto">
       <div className="flex w-screen h-16 bg-red-200 text-gray-950 items-center justify-between px-4">
@@ -57,7 +65,7 @@ export default function App() {
         style={{ height: "calc(100vh - 4rem)" }}
       >
         <div className="flex w-96 h-full">
-          <Form iniciarSimulacion={iniciarSimulacion} />
+          <Form iniciarSimulacion={iniciarSimulacion} reset={reset}/>
         </div>
         <div className="flex w-full h-full ">
           {datosDeSalida ? (

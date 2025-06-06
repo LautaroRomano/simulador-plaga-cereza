@@ -11,7 +11,7 @@ interface DatosEntrada {
     insecticidaSeleccionado: Insecticida | null;
 }
 
-export default function Form({ iniciarSimulacion }: { iniciarSimulacion: (datos: DatosEntrada) => void }) {
+export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: (datos: DatosEntrada) => void, reset: () => void }) {
     const [variedadCereza, setVariedadCereza] = useState("Lapins");
     const [insecticidaSeleccionado, setInsecticidaSeleccionado] = useState<string | null>(null);
     const [simulacionIniciada, setSimulacionIniciada] = useState(false);

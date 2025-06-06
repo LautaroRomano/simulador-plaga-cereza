@@ -85,7 +85,7 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
               <div className="flex flex-col">
                 <span className="text-red-700 text-sm">Calidad de Cereza</span>
                 <span className="text-2xl font-bold">
-                  {data.calidadCereza.toFixed(1)}/10
+                  {data.calidadCereza.toFixed(1)}/100
                 </span>
               </div>
             </div>
@@ -128,14 +128,14 @@ export default function ViewData({ data, insecticidaSeleccionado }: Props) {
                 <span className="text-red-700 text-sm">Cerezas Totales</span>
                 <span className="text-xl font-bold">
                   {(
-                    data.cantidadCerezas + data.cerezasDesechadas
+                    data.cantidadCerezasInicial
                   ).toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-red-700 text-sm">Índice Brix</span>
+                <span className="text-red-700 text-sm">Cerezas desechadas</span>
                 <span className="text-xl font-bold">
-                  {data.brix.toFixed(1)}
+                  {(data.cerezasDesechadas || 0).toLocaleString()}
                 </span>
               </div>
             </div>
