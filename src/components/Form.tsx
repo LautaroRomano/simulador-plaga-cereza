@@ -44,7 +44,7 @@ export default function Form({ iniciarSimulacion }: { iniciarSimulacion: (datos:
 
     return (
         <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
+            <CardHeader className="mt-4">
                 <h2 className="text-xl font-semibold">Parámetros Iniciales</h2>
             </CardHeader>
             <CardContent className="flex flex-col space-y-4 items-center h-full">

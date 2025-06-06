@@ -1,31 +1,11 @@
 "use client";
 import { useState } from "react";
-import { simularCosecha } from "@/functions/functions";
 import { tasasBrix } from "@/functions/functions";
 import Form from "@/components/Form";
-import { Insecticida } from "@/types";
+import { DatosEntrada, DatosSalida } from "@/types";
 import ViewData from "@/components/ViewData";
 
-interface DatosEntrada {
-  variedadCereza: string;
-  insecticidaSeleccionado: Insecticida | null;
-}
-
-interface DatosSalida {
-  poblacionPlaga: number;
-  cantidadCerezas: number;
-  cerezasDesechadas: number;
-  brix: number;
-  dia: number;
-  calidadCereza: number;
-  ganancia: number;
-  costoInsecticida: number;
-  perdidaTotal: number;
-}
-
-
 export default function App() {
-
   //Datos de entrada
   const [datosDeEntrada, setDatosDeEntrada] = useState<DatosEntrada>({
     variedadCereza: "Lapins",
@@ -36,22 +16,39 @@ export default function App() {
   const [datosDeSalida, setDatosDeSalida] = useState<DatosSalida | null>(null);
   //console.log("🚀 ~ App ~ datosDeSalida:", datosDeSalida)
 
-  const iniciarSimulacion = (datos: DatosEntrada) => {
+  const iniciarSimulacion = async (datos: DatosEntrada) => {
     setDatosDeEntrada(datos);
 
-    const datosSalida = simularCosecha(datos)
-    setDatosDeSalida(datosSalida);
+    try {
+      const res = await fetch("/api/simularCosecha", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datos),
+      });
+
+      if (!res.ok) {
+        alert("Error al iniciar la simulación");
+        throw new Error("Error en la simulación");
+      }
+      const datosSalida: DatosSalida = await res.json();
+      setDatosDeSalida(datosSalida);
+    } catch (error) {
+      console.error("Error al iniciar la simulación:", error);
+      alert("Error al iniciar la simulación");
+    }
   };
 
   return (
     <main className="flex flex-col items-center bg-gray-100 w-full h-full overflow-x-hidden overflow-y-auto">
-      <div className="flex w-screen h-16 bg-blue-500 items-center justify-between px-4">
+      <div className="flex w-screen h-16 bg-red-200 text-gray-950 items-center justify-between px-4">
         <h1 className="text-xl font-bold text-start">
           Simulador de Estrategias de Control de plagas en Cerezos
         </h1>
         <div className="flex item-center justify-center gap-2">
-          {datosDeSalida?.dia ?
-            `Simulacion de ${datosDeSalida?.dia} días`
+          {datosDeSalida?.dia
+            ? `Simulacion de ${datosDeSalida?.dia} días`
             : "Simulación no iniciada"}
         </div>
       </div>
@@ -65,24 +62,29 @@ export default function App() {
         <div className="flex w-full h-full ">
           {datosDeSalida ? (
             <ViewData
-              poblacionPlaga={datosDeSalida.poblacionPlaga}
-              cantidadCerezas={datosDeSalida.cantidadCerezas}
-              brix={datosDeSalida.brix}
-              dia={datosDeSalida.dia}
-              tasasBrix={tasasBrix}
+              data={datosDeSalida}
               insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
             />
           ) : (
             <ViewData
-              poblacionPlaga={500}
-              cantidadCerezas={0}
-              brix={0}
-              dia={0}
-              tasasBrix={tasasBrix}
+              data={{
+                poblacionPlaga: 500,
+                cantidadCerezas: 0,
+                cerezasDesechadas: 0,
+                brix: 0,
+                dia: 0,
+                calidadCereza: 0,
+                ganancia: 0,
+                costoInsecticida: 0,
+                perdidaTotal: 0,
+                insecticida: "",
+                arbolesTotales: 0,
+                cantidadCerezasInicial: 0,
+                cantidadMoscasInicial: 0,
+              }}
               insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
             />
-          )
-          }
+          )}
         </div>
       </div>
     </main>

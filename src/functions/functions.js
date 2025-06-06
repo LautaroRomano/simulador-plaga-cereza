@@ -1,42 +1,30 @@
-
-
 export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
-  // Generar números aleatorios al inicio
-  generarNumerosAleatorios(99999999);
-
   const arbolesTotales = calcularArbolesTotales();
   const cantidadCerezasInicial = calcularCantidadDeCerezas(arbolesTotales);
-  const cantidadMoscasInicial = calcularCantidadDeMoscasIniciales(arbolesTotales);
+  const cantidadMoscasInicial =
+    calcularCantidadDeMoscasIniciales(arbolesTotales);
   let cantidadCerezas = cantidadCerezasInicial;
   let cerezasDesechadas = 0;
   let poblacionMoscas = cantidadMoscasInicial;
-  let brix = 0
+  let brix = 0;
   let dia = 1;
   let temperatura = 0;
 
   while (brix <= 18) {
-    /* console.log({
-      arbolesTotales,
-      cantidadCerezasInicial,
-      cantidadMoscasInicial,
-      cantidadCerezas,
-      cerezasDesechadas,
-      poblacionMoscas,
-      brix,
-      dia,
-      temperatura
-    }) */
-
     const moscasHembras = calcularMoscasHembras(poblacionMoscas);
     for (let i = 0; i < moscasHembras; i++) {
       const cerezasOvipositadasPorMoscaPorDia = 11;
-      const cd = poisson(cerezasOvipositadasPorMoscaPorDia);
+      const cd = poisson(cerezasOvipositadasPorMoscaPorDia); //cerezas desechadas por mosca por dia
       cerezasDesechadas += cd;
-      cantidadCerezas -= cd;
+      cantidadCerezas = Math.max(0, cantidadCerezas - cd);
     }
     temperatura = calcularTemperaturaPorDia(dia);
     brix += calcularBrix(temperatura);
-    poblacionMoscas = calcularPoblacionMoscas(temperatura, poblacionMoscas);
+    poblacionMoscas = calcularPoblacionMoscas(
+      temperatura,
+      poblacionMoscas,
+      insecticidaSeleccionado
+    );
 
     dia++;
   }
@@ -49,44 +37,52 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
     dia,
     calidadCereza: 0,
     ganancia: 10 * cantidadCerezas,
-    costoInsecticida: insecticidaSeleccionado ? insecticidaSeleccionado.impacto * cantidadCerezas : 0,
-    perdidaTotal: cerezasDesechadas * 10 + (insecticidaSeleccionado ? insecticidaSeleccionado.impacto * cantidadCerezas : 0),
-    insecticida: insecticidaSeleccionado ? insecticidaSeleccionado.nombre : "Ninguno",
-  }
-}
-
-export function actualizarBrix(
-  brixActual,
-  temperatura,
-  variedad
-) {
-  return brixActual + 0.2;
+    costoInsecticida: insecticidaSeleccionado
+      ? insecticidaSeleccionado.impacto * cantidadCerezas
+      : 0,
+    perdidaTotal:
+      cerezasDesechadas * 10 +
+      (insecticidaSeleccionado
+        ? insecticidaSeleccionado.impacto * cantidadCerezas
+        : 0),
+    insecticida: insecticidaSeleccionado
+      ? insecticidaSeleccionado.nombre
+      : "Ninguno",
+    arbolesTotales: arbolesTotales,
+    cantidadCerezasInicial: cantidadCerezasInicial,
+    cantidadMoscasInicial: cantidadMoscasInicial,
+  };
 }
 
 /* ----------------------------------
     CALCULAR CANTIDAD DE ARBOLES TOTALES
 ------------------------------------*/
 export function calcularArbolesTotales() {
-  return 21600 + 3600 * obtenerNumeroAleatorio();
+  // return Math.floor(21600 + 3600 * obtenerNumeroAleatorio());
+  return Math.floor(21.6 + 3.6 * obtenerNumeroAleatorio());
 }
 
 /* ----------------------------------
     CALCULAR CANTIDAD DE CEREZAS
 ------------------------------------*/
 export function calcularCantidadDeCerezas(cantidadCerezos) {
+  if (cantidadCerezos <= 0) return 0;
   let cantidadCerezas = 0;
   for (let i = 0; i < cantidadCerezos; i++) {
-    cantidadCerezas += Math.floor(5000 + (5000 - 3000) * obtenerNumeroAleatorio());
+    cantidadCerezas += Math.floor(
+      5000 + (5000 - 3000) * obtenerNumeroAleatorio()
+    );
   }
   return cantidadCerezas;
 }
+
 /* --------------------------------------------
     CALCULAR CANTIDAD TOTAL DE MOSCAS INICIALES
 -----------------------------------------------*/
 export function calcularCantidadDeMoscasIniciales(cantidadCerezos) {
   let cantidadMoscas = 0;
   for (let i = 0; i < cantidadCerezos; i++) {
-    cantidadMoscas += Math.floor(2 + (13 - 2) * obtenerNumeroAleatorio()); //chequear 
+    cantidadMoscas += Math.floor(2 + (13 - 2) * obtenerNumeroAleatorio()); //chequear
   }
   return cantidadMoscas;
 }
@@ -122,55 +118,41 @@ function calcularTemperaturaPorDia(dia) {
       CALCULAR BRIX POR TEMPERATURA
 -------------------------------*/
 function calcularBrix(temp) {
-  let brix = 0;
-  if (temp < 20) brix += 0.2;
-  else if (temp < 25) brix += 0.3;
-  else brix += 0.4;
+  if (typeof temp !== "number" || isNaN(temp)) {
+    console.error("Invalid temperature value:", temp);
+    return 0;
+  }
 
-  return brix;
+  return temp < 20 ? 0.2 : temp < 25 ? 0.3 : 0.4;
 }
 
 /* -----------------------------
       CALCULAR MOSCAS POR TEMPERATURA
 -------------------------------*/
-function calcularPoblacionMoscas(temperatura, poblacionAnterior) {
-  let poblacionMoscas = poblacionAnterior * 0.9;
+function calcularPoblacionMoscas(temperatura, poblacionAnterior, insecticida) {
+  let poblacionMoscas = poblacionAnterior * 0.9; //muerte por causas naturales %10
 
-  poblacionMoscas = poblacionAnterior * 0.9; //muerte por causas naturales %10
-
-  //Nacimientos de moscas
   if (temperatura < 15) poblacionMoscas = poblacionMoscas * 1.5;
   else if (temperatura < 20) poblacionMoscas = poblacionMoscas * 1.1;
   else if (temperatura < 25) poblacionMoscas = poblacionMoscas * 1.17;
   else poblacionMoscas = poblacionMoscas * 1.2;
 
-  poblacionMoscas = poblacionMoscas - (poblacionMoscas * 0.064); //Muerte por insecticida
+  poblacionMoscas =
+    poblacionMoscas - poblacionMoscas * (insecticida?.mortalidadExtra || 0);
 
-  return Math.floor(poblacionMoscas);
-}
-
-/* ----------------------------------------
-    CALCULAR CANTIDAD DE CEREZAS DESECHADAS
-------------------------------------------*/
-function calcularCerezasDesechadas(moscasHembras) {
-  for (let i = 0; i < moscasHembras; i++) {
-    cerezasDesechadas += Math.floor(7 + (15 - 7) * obtenerNumeroAleatorio());
-  }
-  return cerezasDesechadas;
+  return Math.max(0, Math.floor(poblacionMoscas));
 }
 /* ------------------------------
           CALCULAR NORMAL
 -------------------------------*/
 function obtenerNumeroNormal(media = 0, desviacion = 1) {
   let u1 = obtenerNumeroAleatorio();
-  console.log("🚀 ~ obtenerNumeroNormal ~ u1:", u1)
   let u2 = obtenerNumeroAleatorio();
-  console.log("🚀 ~ obtenerNumeroNormal ~ u2:", u2)
 
   let z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
 
   // Escalar con media y desviación estándar
-  console.log(z * desviacion + media)
+  console.log(z * desviacion + media);
   return z * desviacion + media;
 }
 
@@ -190,34 +172,23 @@ function poisson(media) {
 /* ------------------------------
     CALCULAR NUMERO ALEATORIO
 -------------------------------*/
-const numerosAleatorios = []
-let ultimoUsado = 0;
-//Generar u
-function generarNumerosAleatorios(cantidad = 1000) {
-  numerosAleatorios.length = 0; // Limpiar el array antes de llenarlo
-  let seed = Math.random();
-  const a = 17321;
-  const c = 16123;
-  const m = 15123;
-  Array.from({ length: cantidad }).forEach((_, i) => {
-    const newSeed = (a * seed + c) % m;
-    const u = newSeed / m;
-    numerosAleatorios.push(u);
-    seed = newSeed;
-  })
-}
-function obtenerNumeroAleatorio() { //obtener un numero aleatorio de la lista
-  const num = numerosAleatorios[ultimoUsado]
-  ultimoUsado++;
-  return num;
-}
+// Configuración para el generador lineal congruencial
+const a = 1664525;
+const c = 1013904223;
+const m = Math.pow(2, 32);
 
+let seed = Date.now() % m;
+
+function obtenerNumeroAleatorio() {
+  seed = (a * seed + c) % m;
+  return seed / m;
+}
 
 /* ------------------------------
     CONSTANTES
 -------------------------------*/
 export const insecticidas = [
-  { nombre: "Spinosinas", mortalidadExtra: 0.9, duracion: 14, impacto: -0.06 },
+  { nombre: "Spinosinas", mortalidadExtra: 0.09, duracion: 14, impacto: -0.06 },
   {
     nombre: "Piretroides",
     mortalidadExtra: 0.95,
