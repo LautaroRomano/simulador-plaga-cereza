@@ -2,7 +2,7 @@ import { Label } from "./ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { insecticidas } from "@/functions/functions";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { Insecticida } from "@/types";
 
@@ -28,6 +28,8 @@ export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: 
 
     const resetearSimulacion = () => {
         setSimulacionIniciada(false);
+        setInsecticidaSeleccionado(null);
+        setVariedadCereza("Lapins");
         reset();
     };
 
@@ -56,6 +58,7 @@ export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: 
                             key={cereza}
                             className="flex w-full h-4"
                             onClick={() => handleSelectCereza(cereza)}
+                            disabled={simulacionIniciada}
                         >
                             <div className="flex w-4 h-4 border-2 items-center justify-center rounded mr-2">
                                 {variedadCereza === cereza && (
@@ -75,6 +78,7 @@ export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: 
                             key={insecticida.nombre}
                             className="flex w-full h-4"
                             onClick={() => handleSelectInsecticida(insecticida.nombre)}
+                            disabled={simulacionIniciada}
                         >
                             <div className="flex w-4 h-4 border-2 items-center justify-center rounded mr-2">
                                 {insecticidaSeleccionado === insecticida.nombre && (
@@ -91,8 +95,8 @@ export default function Form({ iniciarSimulacion, reset }: { iniciarSimulacion: 
             <CardFooter className="flex justify-center items-center w-full mb-10">
                 {
                     simulacionIniciada ?
-                        <Button onClick={resetearSimulacion}>Resetear Simulacion</Button>
-                        : <Button onClick={handleInit}>Iniciar Simulación</Button>
+                        <Button onClick={resetearSimulacion} className="bg-red-600 hover:bg-red-700">Resetear Simulación</Button>
+                        : <Button onClick={handleInit} className="bg-green-600 hover:bg-green-700">Iniciar Simulación</Button>
                 }
             </CardFooter>
         </Card>

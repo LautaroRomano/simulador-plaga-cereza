@@ -13,9 +13,11 @@ export default function App() {
 
   //datos de salida
   const [datosDeSalida, setDatosDeSalida] = useState<DatosSalida | null>(null);
+  const [cargando, setCargando] = useState<boolean>(false);
 
   const iniciarSimulacion = async (datos: DatosEntrada) => {
     setDatosDeEntrada(datos);
+    setCargando(true);
 
     try {
       const res = await fetch("/api/simularCosecha", {
@@ -27,7 +29,6 @@ export default function App() {
       });
 
       if (!res.ok) {
-        alert("Error al iniciar la simulación");
         throw new Error("Error en la simulación");
       }
       const datosSalida: DatosSalida = await res.json();
@@ -35,6 +36,8 @@ export default function App() {
     } catch (error) {
       console.error("Error al iniciar la simulación:", error);
       alert("Error al iniciar la simulación");
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -54,8 +57,8 @@ export default function App() {
         </h1>
         {!!datosDeSalida ? (
         <div className="flex item-center justify-center gap-2">
-          {datosDeSalida.dias[datosDeSalida.dias.length - 1]
-            ? `Simulacion de ${datosDeSalida.dias.length} días`
+          {datosDeSalida.dias.length > 0
+            ? `Simulación de ${datosDeSalida.dias.length} días`
             : "Simulación no iniciada"}
         </div>
         ):(
@@ -72,22 +75,16 @@ export default function App() {
           <Form iniciarSimulacion={iniciarSimulacion} reset={reset}/>
         </div>
         <div className="flex w-full h-full ">
-          {datosDeSalida ? (
-            <ViewData
-              data={datosDeSalida}
-              insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
-            />
-          ) : (
-            <ViewData
-              data={{
-                dias: [],
-                arbolesTotales: 0,
-                cantidadCerezasInicial: 0,
-                cantidadMoscasInicial: 0,
-              }}
-              insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
-            />
-          )}
+          <ViewData
+            data={datosDeSalida || {
+              dias: [],
+              arbolesTotales: 0,
+              cantidadCerezasInicial: 0,
+              cantidadMoscasInicial: 0,
+            }}
+            insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
+            cargando={cargando}
+          />
         </div>
       </div>
     </main>

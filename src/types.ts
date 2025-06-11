@@ -3,6 +3,8 @@ export interface Insecticida {
   mortalidadExtra: number;
   duracion: number;
   impacto: number;
+  precio: number;
+  unidadesNecesarias: number;
 }
 
 export interface TasasBrix {

@@ -1,5 +1,20 @@
 export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
-  if(variedadCereza !== "") console.log("ok")
+  const precioCereza =
+    variedadCereza === "Lapins"
+      ? 4.19
+      : variedadCereza === "Kordia"
+      ? 3.59
+      : variedadCereza === "Sweetheart"
+      ? 3.99
+      : 4.19;
+  const brixNecesario =
+    variedadCereza === "Lapins"
+      ? 17.5
+      : variedadCereza === "Kordia"
+      ? 18
+      : variedadCereza === "Sweetheart"
+      ? 18.5
+      : 18;
   const arbolesTotales = calcularArbolesTotales();
   const cantidadCerezasInicial = calcularCantidadDeCerezas(arbolesTotales);
   const cantidadMoscasInicial =
@@ -15,8 +30,8 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
     arbolesTotales,
     cantidadCerezasInicial,
     cantidadMoscasInicial,
-    dias: []
-  }
+    dias: [],
+  };
 
   if (!insecticidaSeleccionado) {
     insecticidaSeleccionado = {
@@ -25,11 +40,11 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
       duracion: 1,
       impacto: 0,
       precio: 0,
-      unidadesNecesarias: 0
+      unidadesNecesarias: 0,
     };
   }
 
-  while (brix <= 18) {
+  while (brix <= brixNecesario) {
     const moscasHembras = calcularMoscasHembras(poblacionMoscas);
     for (let i = 0; i < moscasHembras; i++) {
       const cerezasOvipositadasPorMoscaPorDia = 4;
@@ -39,14 +54,25 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
     }
     temperatura = calcularTemperaturaPorDia(dia);
     brix += calcularBrix(temperatura);
-    poblacionMoscas = calcularPoblacionMoscas(
-      temperatura,
-      poblacionMoscas,
-      insecticidaSeleccionado
+    poblacionMoscas = Math.min(
+      1000000,
+      Math.max(
+        0,
+        calcularPoblacionMoscas(
+          temperatura,
+          poblacionMoscas,
+          insecticidaSeleccionado
+        )
+      )
     );
 
-    const cantidadAplicaciones = Math.ceil(dia / insecticidaSeleccionado.duracion);
-    const costoInsec = cantidadAplicaciones * insecticidaSeleccionado.precio * insecticidaSeleccionado.unidadesNecesarias;
+    const cantidadAplicaciones = Math.ceil(
+      dia / insecticidaSeleccionado.duracion
+    );
+    const costoInsec =
+      cantidadAplicaciones *
+      insecticidaSeleccionado.precio *
+      insecticidaSeleccionado.unidadesNecesarias;
 
     datosSalida.dias.push({
       poblacionPlaga: poblacionMoscas,
@@ -54,14 +80,17 @@ export function simularCosecha({ variedadCereza, insecticidaSeleccionado }) {
       cerezasDesechadas: cerezasDesechadas,
       brix: brix,
       dia,
-      calidadCereza: 100 + (insecticidaSeleccionado.impacto * cantidadAplicaciones),
-      ganancia: 4.19 * (cantidadCerezas / 100),
+      calidadCereza: Math.max(
+        10,
+        100 + insecticidaSeleccionado.impacto * cantidadAplicaciones
+      ),
+      ganancia: precioCereza * (cantidadCerezas / 100),
       costoInsecticida: costoInsec,
-      perdidaTotal: costoInsec + (cerezasDesechadas / 100) * 4.19,
+      perdidaTotal: costoInsec + (cerezasDesechadas / 100) * precioCereza,
       insecticida: insecticidaSeleccionado
         ? insecticidaSeleccionado.nombre
         : "Ninguno",
-    })
+    });
 
     dia++;
   }
@@ -114,7 +143,7 @@ function calcularMoscasHembras(moscasTotales) {
 -------------------------------*/
 function calcularTemperaturaPorDia(dia) {
   if (dia <= 30) {
-    let temperatura = (17, 7);
+    let temperatura = obtenerNumeroNormal(17, 7);
     return temperatura;
   }
   if (dia <= 61) {
@@ -147,10 +176,10 @@ function calcularBrix(temp) {
 function calcularPoblacionMoscas(temperatura, poblacionAnterior, insecticida) {
   let poblacionMoscas = poblacionAnterior * 0.9; //muerte por causas naturales %10
 
-  if (temperatura < 15) poblacionMoscas = poblacionMoscas * 1.5;
-  else if (temperatura < 20) poblacionMoscas = poblacionMoscas * 1.1;
-  else if (temperatura < 25) poblacionMoscas = poblacionMoscas * 1.17;
-  else poblacionMoscas = poblacionMoscas * 1.2;
+  if (temperatura < 15) poblacionMoscas = poblacionMoscas * 1.3;
+  else if (temperatura < 20) poblacionMoscas = poblacionMoscas * 1.5;
+  else if (temperatura < 25) poblacionMoscas = poblacionMoscas * 1.6;
+  else poblacionMoscas = poblacionMoscas * 1.75;
 
   poblacionMoscas =
     poblacionMoscas - poblacionMoscas * (insecticida?.mortalidadExtra || 0);
@@ -204,21 +233,35 @@ function obtenerNumeroAleatorio() {
     CONSTANTES
 -------------------------------*/
 export const insecticidas = [
-  { nombre: "Spinosinas", mortalidadExtra: 0.30, duracion: 14, impacto: -6, precio: 73, unidadesNecesarias: 13 },
+  {
+    nombre: "Spinosinas",
+    mortalidadExtra: 0.3,
+    duracion: 14,
+    impacto: -6,
+    precio: 73,
+    unidadesNecesarias: 13,
+  },
   {
     nombre: "Piretroides",
-    mortalidadExtra: 0.95,
+    mortalidadExtra: 0.25,
     duracion: 10,
-    impacto: -15,
+    impacto: -7,
     precio: 37,
     unidadesNecesarias: 53,
   },
-  { nombre: "Carbamatos", mortalidadExtra: 0.85, duracion: 7, impacto: -12, precio: 7.5, unidadesNecesarias: 26 },
+  {
+    nombre: "Carbamatos",
+    mortalidadExtra: 0.35,
+    duracion: 12,
+    impacto: -5,
+    precio: 75,
+    unidadesNecesarias: 26,
+  },
   {
     nombre: "Organofosforados",
-    mortalidadExtra: 0.9,
+    mortalidadExtra: 0.25,
     duracion: 10,
-    impacto: -18,
+    impacto: -8,
     precio: 11,
     unidadesNecesarias: 21,
   },
