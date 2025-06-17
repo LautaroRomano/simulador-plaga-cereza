@@ -5,18 +5,12 @@ import { DatosEntrada, DatosSalida } from "@/types";
 import ViewData from "@/components/ViewData";
 
 export default function App() {
-  //Datos de entrada
-  const [datosDeEntrada, setDatosDeEntrada] = useState<DatosEntrada>({
-    variedadCereza: "Lapins",
-    insecticidaSeleccionado: null,
-  });
 
   //datos de salida
   const [datosDeSalida, setDatosDeSalida] = useState<DatosSalida | null>(null);
   const [cargando, setCargando] = useState<boolean>(false);
 
   const iniciarSimulacion = async (datos: DatosEntrada) => {
-    setDatosDeEntrada(datos);
     setCargando(true);
 
     try {
@@ -43,10 +37,6 @@ export default function App() {
 
   const reset = () => {
     setDatosDeSalida(null);
-    setDatosDeEntrada({
-      variedadCereza: "Lapins",
-      insecticidaSeleccionado: null,
-    });
   };
 
   return (
@@ -82,7 +72,6 @@ export default function App() {
               cantidadCerezasInicial: 0,
               cantidadMoscasInicial: 0,
             }}
-            insecticidaSeleccionado={datosDeEntrada.insecticidaSeleccionado}
             cargando={cargando}
           />
         </div>

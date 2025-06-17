@@ -2,7 +2,7 @@ import { Label } from "./ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { insecticidas } from "@/functions/functions";
 import { Button } from "./ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import { Insecticida } from "@/types";
 

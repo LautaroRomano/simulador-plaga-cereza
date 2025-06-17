@@ -32,7 +32,7 @@ interface Props {
 
 const COLORS = ["#c41c00", "#ff6659"];
 
-export default function ViewData({ data, insecticidaSeleccionado, cargando = false }: Props) {
+export default function ViewData({ data, cargando = false }: Props) {
   const [dia, setDia] = useState<number>(Math.max(data.dias.length - 1, 0));
   const simulacionIniciada = data.dias.length > 0;
 
@@ -110,7 +110,7 @@ export default function ViewData({ data, insecticidaSeleccionado, cargando = fal
       <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 rounded-xl p-8">
         <div className="text-4xl text-red-700 mb-4">¡Simulación no iniciada!</div>
         <p className="text-lg text-center text-gray-700">
-          Selecciona los parámetros iniciales y haz clic en "Iniciar Simulación" para ver los resultados.
+          Selecciona los parámetros iniciales y haz clic en <strong>Iniciar Simulación</strong> para ver los resultados.
         </p>
         <div className="mt-8">
           <Arbol colorFruta="green" />
